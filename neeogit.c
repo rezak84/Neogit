@@ -12,7 +12,7 @@ int init(int argc, char *const argv[]);
 // int config_global_email(char *email);
 int config_local_username(char *username);
 int config_local_email(char *email);
-int add(char name_off_ile);
+int add(char *name_off_ile);
 
 // for the creat folder we need in the init
 
@@ -69,6 +69,8 @@ int init(int argc, char *const argv[])
         // creat stagearae for the add part
         fopen(".neogit/stagearea", "w");
         fopen(".neogit/config", "w");
+        fclose(".neogit/stagearea");
+        fclose(".neogit/config");
     }
     else
     {
@@ -100,9 +102,95 @@ int config_local_email(char *email)
     return 0;
 }
 
-int add(char name_off_ile)
+int add(char *name_of_file)
 {
+    bool exist = false;
+    FILE *file = fopen(".neeogit/stagearea", "r");
+    if (file == NULL)
+    {
+        perror("erorr opening stagearea");
+        return 1;
+    }
+    DIR *dir = opendir(".");
+    if (dir == NULL)
+    {
+        perror("erorr opening now dir");
+        return 1;
+    }
+    struct dirent *entry;
+    while ((entry = readdir(dir)) != NULL)
+    {
+        if (strcmp(entry->d_name, name_of_file) == 0)
+        {
+            perror("this file already exist in stagearea");
+            return 1;
+        }
+        else
+        {
+            exist = true;
+        }
+    }
+    fclose(file);
+    if (exist)
+    {
+        FILE *stage = fopen(".neeogit/stagearea", "a");
+        fprintf(stage, "%s\n", name_of_file);
+        fclose(stage);
+    }
+    closedir(dir);
+    return 0;
 }
+// int add(char name_of_file)
+// {
+//     char cwd[1024];
+//     if (getcwd(cwd, sizeof(cwd)) == NULL)
+//     {
+//         return 1;
+//     }
+//     char tmp_cwd[1024];
+//     // bool exists = false;
+//     struct dirent *entry;
+//     do
+//     {
+//         // find .neogit
+//         DIR *dir = opendir(".");
+//         if (dir == NULL)
+//         {
+//             perror("Error opening current directory");
+//             return 1;
+//         }
+
+//         while ((entry = readdir(dir)) != NULL)
+//         {
+//             if (strcmp(entry->d_name, name_of_file) == 0)
+//             {
+//                 // inja chejori file ro berizam to  stagearea ???????
+//                 FILE *file = fopen(".neeogit/stagearea", "a");
+//                 if (file == NULL)
+//                 {
+//                     perror("stagearea not found");
+//                     return 1;
+//                 }
+//                 fprintf(file, "%s\n", name_of_file);
+
+//                 fclose(file);
+//                 // exists = true;
+//             }
+//         }
+//         closedir(dir);
+//         // update current working directory
+//         if (getcwd(tmp_cwd, sizeof(tmp_cwd)) == NULL)
+//             return 1;
+
+//         // change cwd to parent
+//         if (strcmp(tmp_cwd, "/") != 0)
+//         {
+//             if (chdir("..") != 0)
+//                 return 1;
+//         }
+
+//     } while (strcmp(tmp_cwd, "/") != 0);
+// }
 
 int main(int argc, char *argv[])
 {
