@@ -7,15 +7,68 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+char neeogit_location[85];
+
 int init(int argc, char *const argv[]);
-// int config_global_username(char *usernaem);
-// int config_global_email(char *email);
 int config_local_username(char *username);
 int config_local_email(char *email);
 int add(char *name_off_ile);
+int check_neeogit_exist();
+int check_root();
 
-// for the creat folder we need in the init
-
+int check_root()
+{
+    system("touch alaki.txt");
+    system("pwd > alaki.txt");
+    FILE *file = fopen("alaki.txt", "r");
+    if (strcmp(file, "/\n") == 0)
+    {
+        system("rm alaki.txt");
+        fclose(file);
+        return 1;
+    }
+    else
+    {
+        system("rm alaki.txt");
+        fclose(file);
+        return 0;
+    }
+}
+// alave bar namesh y kare dige hame mikone va adress neeogit ro save mikone
+int check_neeogit_exist()
+{
+    system("touch folder.txt");
+    system("ls -a > folder.txt");
+    FILE *file = fopen("folder.txt", "r");
+    char check[85];
+    int flag;
+    while (fgets(check, sizeof(check), file))
+    {
+        // check for the neeogit
+        if (strcmp(check, ".neeogit\n") == 0)
+        {
+            // y  motagheyer global tarif shod baraye save location neeogit
+            system("touch location.txt");
+            system("pwd > location.txt");
+            FILE *location = fopen("location.txt", "r");
+            fgets(neeogit_location, sizeof(neeogit_location), location);
+            // injasho nafahmidam chera
+            int lenth = strlen(neeogit_location);
+            neeogit_location[lenth - 1] = '\0';
+            // ta inja
+            fclose(location);
+            system("rm location.txt");
+            flag = 1;
+        }
+    }
+    fclose(file);
+    system("rm folder.txt");
+    if (flag == 1)
+    {
+        return 1;
+    }
+    return 0;
+}
 int init(int argc, char *const argv[])
 {
     char cwd[1024];
@@ -67,10 +120,10 @@ int init(int argc, char *const argv[])
             return 1;
         }
         // creat stagearae for the add part
-        fopen(".neogit/stagearea", "w");
-        fopen(".neogit/config", "w");
-        fclose(".neogit/stagearea");
-        fclose(".neogit/config");
+        FILE *poin1 = fopen(".neogit/stagearea", "w");
+        FILE *poin2 = fopen(".neogit/config", "w");
+        fclose(poin1);
+        fclose(poin2);
     }
     else
     {
@@ -104,6 +157,7 @@ int config_local_email(char *email)
 
 int add(char *name_of_file)
 {
+    // pwd strcat
     bool exist = false;
     FILE *file = fopen(".neeogit/stagearea", "r");
     if (file == NULL)
@@ -140,57 +194,6 @@ int add(char *name_of_file)
     closedir(dir);
     return 0;
 }
-// int add(char name_of_file)
-// {
-//     char cwd[1024];
-//     if (getcwd(cwd, sizeof(cwd)) == NULL)
-//     {
-//         return 1;
-//     }
-//     char tmp_cwd[1024];
-//     // bool exists = false;
-//     struct dirent *entry;
-//     do
-//     {
-//         // find .neogit
-//         DIR *dir = opendir(".");
-//         if (dir == NULL)
-//         {
-//             perror("Error opening current directory");
-//             return 1;
-//         }
-
-//         while ((entry = readdir(dir)) != NULL)
-//         {
-//             if (strcmp(entry->d_name, name_of_file) == 0)
-//             {
-//                 // inja chejori file ro berizam to  stagearea ???????
-//                 FILE *file = fopen(".neeogit/stagearea", "a");
-//                 if (file == NULL)
-//                 {
-//                     perror("stagearea not found");
-//                     return 1;
-//                 }
-//                 fprintf(file, "%s\n", name_of_file);
-
-//                 fclose(file);
-//                 // exists = true;
-//             }
-//         }
-//         closedir(dir);
-//         // update current working directory
-//         if (getcwd(tmp_cwd, sizeof(tmp_cwd)) == NULL)
-//             return 1;
-
-//         // change cwd to parent
-//         if (strcmp(tmp_cwd, "/") != 0)
-//         {
-//             if (chdir("..") != 0)
-//                 return 1;
-//         }
-
-//     } while (strcmp(tmp_cwd, "/") != 0);
-// }
 
 int main(int argc, char *argv[])
 {
@@ -245,8 +248,30 @@ int main(int argc, char *argv[])
         }
     }
     // for add
-    if (strcmp(argv[1], "add"))
+    if (strcmp(argv[1], "add") == 0)
     {
+        int flag = 0, flagroot = 0;
+        while (1)
+        {
+            if (check_neeogit_exist() == 0)
+            {
+                flag = 1;
+                break;
+            }
+            if (root_check() == 1)
+            {
+                flagroot++;
+            }
+        }
+
+        // add with -f
+        if (strcmp(argv[2], "-f") == 0)
+        {
+        }
+        // normal add
+        else
+        {
+        }
     }
 
     return 0;
