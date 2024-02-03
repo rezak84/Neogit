@@ -12,15 +12,160 @@
 
 char neeogit_location[85];
 
+// start part of syntax
 int check_dir(char *path);
 int init(int argc, char *const argv[]);
 int config_local_username(char *username);
 int config_local_email(char *email);
+int config_global_username(char *username);
+int config_global_email(char *email);
 int add(char *name_off_ile);
 int check_neeogit_exist();
 int check_root();
 int check_stagehistory();
+int check_nee_root(); // hamitor k az esmesh malome nee va root rock mikone
 int check_exist(char searchfile[], char orgfile[]);
+int check_glob_exist();
+void search_stagedfiles(int depth);
+void search_name(char *path);
+// end part of syntax
+
+void search_name(char *path)
+{
+    char location[80];
+    char pathcopy[80];
+    strcpy(pathcopy, path);
+    strcat(pathcopy, "\n");
+    strcpy(location, neeogit_location);
+    strcat(location, "/.neogit/staged_files/Astagedfiles.txt");
+    FILE *Astagedfiles = fopen(location, "r");
+    char search[80];
+    int flag = 0;
+    while (fgets(search, 80, Astagedfiles))
+    {
+        if (strcmp(pathcopy, search) == 0)
+        {
+            flag++;
+            printf("%s", path);
+            printf(" is in staging area.\n");
+            break;
+        }
+    }
+    if (flag == 0)
+    {
+        printf("%s", path);
+        printf(" isn't in staging area.\n");
+    }
+}
+
+void search_stagedfiles(int depth)
+{
+    int count = 0;
+    system("touch file.txt");
+    system("ls -a > file.txt");
+    FILE *files = fopen("file.txt", "r");
+    char search[50];
+    char filenames[50][50];
+    while (fgets(search, 50, files))
+    {
+        if (strcmp(search, "file.txt\n") != 0)
+        {
+            strcpy(filenames[count], search);
+            count++;
+        }
+    }
+    fclose(files);
+    system("rm file.txt");
+    for (int i = 0; i < count; i++)
+    {
+        int len = strlen(filenames[i]);
+        filenames[i][len - 1] = '\0';
+        char path[90];
+        system("touch path.txt");
+        system("pwd > path.txt");
+        FILE *pathfile = fopen("path.txt", "r");
+        fgets(path, 90, pathfile);
+        int length = strlen(path);
+        path[length - 1] = '/';
+        strcat(path, filenames[i]);
+        fclose(pathfile);
+        system("rm path.txt");
+        // path is compoletely true;
+        int type = check_dir(path);
+        if (((((type == 1) && (strcmp(filenames[i], ".neogit") != 0)) && (strcmp(filenames[i], ".") != 0)) && (strcmp(filenames[i], "..") != 0)) && (depth > 1))
+        {
+            search_name(path);
+            chdir(path);
+            search_stagedfiles(depth - 1);
+            chdir("..");
+        }
+        else if (((((type == 1) && (strcmp(filenames[i], ".neogit") != 0)) && (strcmp(filenames[i], ".") != 0)) && (strcmp(filenames[i], "..") != 0)) && (depth == 1))
+        {
+            search_name(path);
+        }
+        else if (((strcmp(filenames[i], ".neogit") != 0)) && (type == 0))
+        {
+            search_name(path);
+        }
+    }
+}
+// int check_glob_exist()
+// {
+//     DIR *dir = opendir(".neegit");
+//     dir = chdir("..");
+//     system("touch search.txt");
+//     system("ls > search.txt");
+//     FILE *file = fopen("search.txt", "r");
+//     char search[85];
+//     while (fgets(search, sizeof(search), file))
+//     {
+//         if (strcmp(search, "globconfig"))
+//         {
+//             system("rm search.txt");
+//             fclose(file);
+//             return 1;
+//         }
+//     }
+//     system("rm search.txt");
+//     fclose(file);
+//     return 0;
+// }
+// int config_global_username(char *username)
+// {
+//     DIR *dir = opendir(".neeogit");
+//     dir = chdir("..");
+//     if (check_glob_exist() == 0)
+//     {
+//         FILE *creat = fopen("globconfig", "w");
+//         fclose(creat);
+//     }
+//     FILE *file = fopen("globconfig", "r");
+//     char copy[85];
+// }
+int check_nee_root() // ino check  konm fk konnm eshtebahe
+{
+    int test = 0;
+    int flag = 0;
+    while (1)
+    {
+        // alaki
+        if (check_neeogit_exist() == 1)
+        {
+            flag++;
+            break;
+        }
+        else if (check_root() == 1)
+        {
+            test++;
+        }
+        if (test > 1)
+        {
+            break;
+        }
+        chdir("..");
+    }
+    return flag;
+}
 
 int check_exist(char searchfile[], char orgfile[])
 {
@@ -75,41 +220,43 @@ int check_stagehistory()
     return 0;
 }
 
-int add(char name_off_line[])
-{
-    static int first_time = 0;
-    DIR *nowdir = opendir(".");
-    // stagearea to init sakhte shode hala mikham y satge history bsazm
-    if (first_time == 0)
-    {
-        first_time++;
-        chdir(".neeogit/stagearea");
-        system("touch stagehistory.txt");
-    }
-    char path[85];
-    char hisstage[85];
-    // mikhaim adress hal  hazero beggirim
-    system("touch pathfile.txt");
-    system("pwd > pathfile.txt");
-    FILE *pathfile = fopen("pathfile.txt", "r");
-    fgets(path, sizeof(path), pathfile);
-    fclose(pathfile);
-    system("rm pathfile.txt");
-    // ta inja
-    int lenth = strlen(path);
-    path[lenth - 1] = '\0';
-    strcat(path, "/");
-    strcat(path, name_off_line);
-    strcpy(hisstage, neeogit_location);
-    strcat(hisstage, "/.neeogit/stagearea/stagehistory.txt");
-    // check direcctory
-}
+// int add(char name_off_line[])
+// {
+//     static int first_time = 0;
+//     DIR *nowdir = opendir(".");
+//     // stagearea to init sakhte shode hala mikham y satge history bsazm
+//     if (first_time == 0)
+//     {
+//         first_time++;
+//         chdir(".neeogit/stagearea");
+//         system("touch stagehistory.txt");
+//     }
+//     char path[85];
+//     char hisstage[85];
+//     // mikhaim adress hal  hazero beggirim
+//     system("touch pathfile.txt");
+//     system("pwd > pathfile.txt");
+//     FILE *pathfile = fopen("pathfile.txt", "r");
+//     fgets(path, sizeof(path), pathfile);
+//     fclose(pathfile);
+//     system("rm pathfile.txt");
+//     // ta inja
+//     int lenth = strlen(path);
+//     path[lenth - 1] = '\0';
+//     strcat(path, "/");
+//     strcat(path, name_off_line);
+//     strcpy(hisstage, neeogit_location);
+//     strcat(hisstage, "/.neeogit/stagearea/stagehistory.txt");
+//     // check direcctory
+// }
 int check_root()
 {
     system("touch alaki.txt");
     system("pwd > alaki.txt");
     FILE *file = fopen("alaki.txt", "r");
-    if (strcmp(file, "/\n") == 0)
+    char search[85];
+    fgets(search, sizeof(search), file);
+    if (strcmp(search, "/\n") == 0)
     {
         system("rm alaki.txt");
         fclose(file);
@@ -125,6 +272,7 @@ int check_root()
 // alave bar namesh y kare dige hame mikone va adress neeogit ro save mikone
 int check_neeogit_exist()
 {
+
     system("touch folder.txt");
     system("ls -a > folder.txt");
     FILE *file = fopen("folder.txt", "r");
@@ -179,7 +327,7 @@ int init(int argc, char *const argv[])
 
         while ((entry = readdir(dir)) != NULL)
         {
-            if (entry->d_type == 4 && strcmp(entry->d_name, ".neogit") == 0)
+            if (entry->d_type == 4 && strcmp(entry->d_name, ".neeogit") == 0)
             {
                 exists = true;
             }
@@ -203,26 +351,28 @@ int init(int argc, char *const argv[])
 
     if (!exists)
     {
-        if (mkdir(".neogit", 0755) != 0)
+        if (mkdir(".neeogit", 0755) != 0)
         {
             return 1;
         }
         // creat stagearae for the add part
-        FILE *poin1 = fopen(".neogit/stagearea", "w");
-        FILE *poin2 = fopen(".neogit/config", "w");
+        FILE *poin1 = fopen(".neeogit/stagearea", "w");
+        FILE *poin2 = fopen(".neeogit/config.email", "w");
+        FILE *poin3 = fopen(".neeogit/config.name", "w");
         fclose(poin1);
         fclose(poin2);
+        fclose(poin3);
     }
     else
     {
-        perror("neogit repository has already initialized");
+        perror("neeogit repository has already initialized");
     }
     return 0;
 }
 
 int config_local_username(char *username)
 {
-    FILE *file = fopen(".neogit/config", "a");
+    FILE *file = fopen(".neeogit/config.name", "w");
     if (file == NULL)
     {
         return 1;
@@ -233,7 +383,7 @@ int config_local_username(char *username)
 }
 int config_local_email(char *email)
 {
-    FILE *file = fopen(".neogit/config", "a");
+    FILE *file = fopen(".neeogit/config.email", "w");
     if (file == NULL)
     {
         return 1;
@@ -304,31 +454,16 @@ int main(int argc, char *argv[])
         fprintf(stdout, "please enter a valid command");
         return 1;
     }
-    if (strcmp(argv[1], "init") == 0)
+    else if (strcmp(argv[1], "init") == 0)
     {
         init(argc, argv);
         return 0;
     }
-    if (strcmp(argv[1], "config") == 0)
+    else if (strcmp(argv[1], "config") == 0)
     {
         // for global
         if (strcmp(argv[2], "-global") == 0)
         {
-            // bakhsh global badan  age tonestam ok konm
-
-            // if (strcmp(argv[3], "user.name") == 0)
-            // {
-            //     char *username;
-            //     sscanf(argv[4], "%s", username);
-            //     config_global_username(username);
-            // }
-            // // for email
-            // else
-            // {
-            //     char *email;
-            //     sscanf(argv[4], "%s", email);
-            //     config_global_email(email);
-            // }
         }
         // for local
         // i  think this part is correct
@@ -336,44 +471,51 @@ int main(int argc, char *argv[])
         {
             if (strcmp(argv[2], "user.name") == 0)
             {
-                char *username;
-                sscanf(argv[3], "%s", username);
-                config_local_username(username);
+                config_local_username(argv[3]);
             }
             // for email
             else
             {
-                char *email;
-                sscanf(argv[3], "%s", email);
-                config_local_email(email);
+                config_local_email(argv[3]);
             }
         }
     }
     // for add
-    if (strcmp(argv[1], "add") == 0)
+    else if (strcmp(argv[1], "add") == 0)
     {
-        int flag = 0, flagroot = 0;
-        while (1)
+        if ((check_nee_root()) == 0)
         {
-            if (check_neeogit_exist() == 0)
-            {
-                flag = 1;
-                break;
-            }
-            if (root_check() == 1)
-            {
-                flagroot++;
-            }
+            printf("you didn't initialized neogit in your project\n");
+            return 0;
         }
-
-        // add with -f
         if (strcmp(argv[2], "-f") == 0)
         {
+            for (int i = 3; i < argc; i++)
+            {
+                add(argv[i]);
+            }
         }
-        // normal add
+        else if (strcmp(argv[2], "-n") == 0)
+        {
+            int depth;
+            if (argv[3] == NULL)
+            {
+                depth = 1;
+                search_stagedfiles(depth);
+            }
+            else
+            {
+                sscanf(argv[3], "%d", &depth);
+                search_stagedfiles(depth);
+            }
+        }
         else
         {
+            add(argv[2]);
         }
+    }
+    else if (strcmp(argv[1], "reset") == 0)
+    {
     }
 
     else
