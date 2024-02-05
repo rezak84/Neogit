@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <sys/types.h>
+#include <time.h>
 // bakhsh add az roye seyed zadam (amir mohammad hamidi) avl talash
 // kardam befahmam chi mige kheyli ghesmatasho  nafahmidam
 // manzoram az bakhsh add tabe add va chizaii k lazem dasht has
@@ -402,9 +403,15 @@ int init(int argc, char *const argv[])
             return 1;
         }
         // creat stagearae for the add part
-        FILE *poin2 = fopen(".neeogit/config.email", "w");
-        FILE *poin3 = fopen(".neeogit/config.name", "w");
-        FILE *poin1 = fopen(".neeogit/stagehistory.txt", "w");
+        system("mkdir .neeogit/stagearea");
+        FILE *poin2 = fopen(".neeogit/config.email.txt", "w");
+        FILE *poin3 = fopen(".neeogit/config.name.txt", "w");
+        FILE *poin1 = fopen(".neeogit/stagearea/stagehistory.txt", "w");
+        if (poin1 == NULL && poin2 == NULL && poin3 == NULL)
+        {
+            perror("segmen fault.");
+            return 1;
+        }
         fclose(poin1);
         fclose(poin2);
         fclose(poin3);
@@ -412,7 +419,6 @@ int init(int argc, char *const argv[])
 
         system("touch khastam.txt");
         system("pwd > khastam.txt");
-        system("mkdir .neeogit/stagearea");
         FILE *nowdir = fopen("khastam.txt", "r");
         if (nowdir == NULL)
         {
@@ -425,9 +431,19 @@ int init(int argc, char *const argv[])
         system("rm khastam.txt");
         chdir("/home");
         FILE *poin4 = fopen("config.glob.name.txt", "w");
+        if (poin4 == NULL)
+        {
+            perror("alakimasalan");
+            return 1;
+        }
         FILE *poin5 = fopen("config.glob.email.txt", "w");
         fclose(poin4);
         fclose(poin5);
+        if (poin4 == NULL && poin5 == NULL)
+        {
+            perror("segmen fault..");
+            return 1;
+        }
         chdir(alaki);
     }
     else
@@ -585,6 +601,7 @@ int add(char *name_of_file, int add_mode)
             fprintf(add, "%s", path);
             fprintf(add, "\n");
             fclose(add);
+            modifyfile(name_of_file, add_mode);
         }
     }
     else if (check_dir(path) == 2)
@@ -615,66 +632,17 @@ int modifyfile(char file[], int mode)
     if (stat(path, &filestat) == 0)
     {
         strcat(path, "\n");
-        time_t present = filestat.st_mtime;
-        char timelineloc[80];
-        char temp[80];
-        strcpy(timelineloc, neeogit_location);
-        strcat(timelineloc, "/.neeogit/commits/timeline.txt");
-        strcpy(temp, neeogit_location);
-        strcat(temp, "/.neeogit/commits/temp.txt");
-        FILE *timeline = fopen(timelineloc, "r");
-        FILE *tempfile = fopen(temp, "w");
         char search[70];
-        int flag = 0;
-        while (fgets(search, 70, timeline))
-        {
-            fprintf(tempfile, "%s", search);
-            if (strcmp(search, path) == 0)
-            {
-                fgets(search, 70, timeline);
-                char modifiedTime[80];
-                // strcpy(modifiedTime, ctime(&present));
-                modifiedTime[strlen(modifiedTime) - 1] = '\0'; // Remove the newline character
-                // if (strcmp(search, ctime(&modifiedTime)) != 0)
-                //{
-                //     flag++;
-                // }
-                fprintf(tempfile, "%s", search);
-                flag++;
-            }
-        }
-        if (flag == 0)
-        {
-            fprintf(tempfile, "%s", path);
-            // fprintf(tempfile, "%s", ctime(&present));
-        }
-        if (((flag == 0 || flag == 2) || (checktracked_files(path) == 0)) || (mode == 1))
-        {
-            if (checktracked_files(path) == 0)
-            {
-                writetrcktedfiles(path);
-            }
-            char loc[80];
-            strcpy(loc, neeogit_location);
-            strcat(loc, "/.neeogit/stagedarea");
-            char COMMAND[180];
-            strcpy(COMMAND, "cp ");
-            strcat(COMMAND, main_path);
-            strcat(COMMAND, " ");
-            strcat(COMMAND, loc);
-            system(COMMAND);
-            strcat(loc, "/staged_files.txt"); // ino beporsam chera txt gozshteh
-            FILE *staged_files = fopen(loc, "a");
-            fprintf(staged_files, "%s", path);
-            // fprintf(staged_files, "%s", ctime(&present));
-            fclose(staged_files);
-        }
-        fclose(timeline);
-        fclose(tempfile);
+        char loc[80];
+        strcpy(loc, neeogit_location);
+        strcat(loc, "/.neeogit/stagedarea");
+        char COMMAND[180];
+        strcpy(COMMAND, "cp ");
+        strcat(COMMAND, main_path);
+        strcat(COMMAND, " ");
+        strcat(COMMAND, loc);
+        system(COMMAND);
         chdir(neeogit_location);
-        chdir(".neeogit/commits");
-        system("rm timeline.txt");
-        system("mv temp.txt timeline.txt");
         chdir(location);
         return 1;
     }
@@ -684,7 +652,6 @@ int modifyfile(char file[], int mode)
         return -1;
     }
 }
-
 int main(int argc, char *argv[])
 {
     if (argc < 2)
