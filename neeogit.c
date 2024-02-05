@@ -8,7 +8,7 @@
 #include <sys/types.h>
 // bakhsh add az roye seyed zadam (amir mohammad hamidi) avl talash
 // kardam befahmam chi mige kheyli ghesmatasho  nafahmidam
-// manzoram az bakhsh add tabe add va chizaii k lazem dasht hast
+// manzoram az bakhsh add tabe add va chizaii k lazem dasht has
 
 char neeogit_location[185];
 
