@@ -28,17 +28,38 @@ int check_root();
 int check_stagehistory();
 int check_nee_root(); // hamitor k az esmesh malome nee va root rock mikone
 int check_exist(char searchfile[], char orgfile[]);
-int check_glob_exist();
+int check_glob_name_exist();  //
+int check_glob_email_exist(); //
 int search_stagedfiles(int depth);
 int search_name(char *path);
 // end part of syntax
 
+int check_glob_name_exist()
+{
+    DIR *dir = opendir("/home");
+    system("touch search.txt");
+    system("ls > search.txt");
+    FILE *file = fopen("search.txt", "r");
+    char search[185];
+    while (fgets(search, sizeof(search), file) != NULL)
+    {
+        if (strcmp(search, "config.glob.name.txt") == 0)
+        {
+            fclose(file);
+            system("rm search.txt");
+            return 0;
+        }
+    }
+    fclose(file);
+    system("rm search.txt");
+    return 1;
+}
 int config_global_username(char *username)
 {
     // bayad set konm k harvagh ino  zad  bere  ro hame config proje ha
     // copy kone
 
-    FILE *file = fopen("/home/config.glob.name", "w");
+    FILE *file = fopen("/home/config.glob.name.txt", "w");
     if (file == NULL)
     {
         perror("file not found");
@@ -51,12 +72,7 @@ int config_global_username(char *username)
 }
 int config_global_email(char *email)
 {
-    FILE *file = fopen("/home/config.glob.email", "w");
-    if (file == NULL)
-    {
-        perror("segmen fault14");
-        return 1;
-    }
+    FILE *file = fopen("/home/config.glob.email.txt", "w");
     if (file == NULL)
     {
         perror("file not found");
@@ -73,7 +89,7 @@ int search_name(char *path)
     strcpy(pathcopy, path);
     strcat(pathcopy, "\n");
     strcpy(location, neeogit_location);
-    strcat(location, "/.neogit/staged_files/Astagedfiles.txt");
+    strcat(location, "/.neeogit/stagearea/stagehistory.txt");
     FILE *Astagedfiles = fopen(location, "r");
     if (Astagedfiles == NULL)
     {
@@ -143,56 +159,24 @@ int search_stagedfiles(int depth)
         system("rm path.txt");
         // path is compoletely true;
         int type = check_dir(path);
-        if (((((type == 1) && (strcmp(filenames[i], ".neogit") != 0)) && (strcmp(filenames[i], ".") != 0)) && (strcmp(filenames[i], "..") != 0)) && (depth > 1))
+        if (((((type == 1) && (strcmp(filenames[i], ".neeogit") != 0)) && (strcmp(filenames[i], ".") != 0)) && (strcmp(filenames[i], "..") != 0)) && (depth > 1))
         {
             search_name(path);
             chdir(path);
             search_stagedfiles(depth - 1);
             chdir("..");
         }
-        else if (((((type == 1) && (strcmp(filenames[i], ".neogit") != 0)) && (strcmp(filenames[i], ".") != 0)) && (strcmp(filenames[i], "..") != 0)) && (depth == 1))
+        else if (((((type == 1) && (strcmp(filenames[i], ".neeogit") != 0)) && (strcmp(filenames[i], ".") != 0)) && (strcmp(filenames[i], "..") != 0)) && (depth == 1))
         {
             search_name(path);
         }
-        else if (((strcmp(filenames[i], ".neogit") != 0)) && (type == 0))
+        else if (((strcmp(filenames[i], ".neeogit") != 0)) && (type == 0))
         {
             search_name(path);
         }
     }
 }
-// int check_glob_exist()
-// {
-//     DIR *dir = opendir(".neegit");
-//     dir = chdir("..");
-//     system("touch search.txt");
-//     system("ls > search.txt");
-//     FILE *file = fopen("search.txt", "r");
-//     char search[85];
-//     while (fgets(search, sizeof(search), file))
-//     {
-//         if (strcmp(search, "globconfig"))
-//         {
-//             system("rm search.txt");
-//             fclose(file);
-//             return 1;
-//         }
-//     }
-//     system("rm search.txt");
-//     fclose(file);
-//     return 0;
-// }
-// int config_global_username(char *username)
-// {
-//     DIR *dir = opendir(".neeogit");
-//     dir = chdir("..");
-//     if (check_glob_exist() == 0)
-//     {
-//         FILE *creat = fopen("globconfig", "w");
-//         fclose(creat);
-//     }
-//     FILE *file = fopen("globconfig", "r");
-//     char copy[85];
-// }
+
 int check_nee_root() // ino check  konm fk konnm eshtebahe
 {
     int test = 0;
@@ -431,11 +415,6 @@ int init(int argc, char *const argv[])
         system("rm khastam.txt");
         chdir("/home");
         FILE *poin4 = fopen("config.glob.name.txt", "w");
-        if (poin4 == NULL)
-        {
-            perror("alakimasalan");
-            return 1;
-        }
         FILE *poin5 = fopen("config.glob.email.txt", "w");
         fclose(poin4);
         fclose(poin5);
@@ -455,7 +434,7 @@ int init(int argc, char *const argv[])
 
 int config_local_username(char *username)
 {
-    FILE *file = fopen(".neeogit/config.name", "w");
+    FILE *file = fopen(".neeogit/config.name.txt", "w");
     if (file == NULL)
     {
         perror("khata5");
@@ -467,7 +446,7 @@ int config_local_username(char *username)
 }
 int config_local_email(char *email)
 {
-    FILE *file = fopen(".neeogit/config.email", "w");
+    FILE *file = fopen(".neeogit/config.email.txt", "w");
     if (file == NULL)
     {
         perror("khata4");
@@ -513,7 +492,7 @@ int modify(int mode)
         int type = check_dir(path);
         char Astage[80];
         strcpy(Astage, neeogit_location);
-        strcat(Astage, "/.neogit/stagearea/stagehistory.txt");
+        strcat(Astage, "/.neeogit/stagearea/stagehistory.txt");
         if ((((type == 1) && (strcmp(filenames[i], ".neeogit") != 0)) && (strcmp(filenames[i], ".") != 0)) && (strcmp(filenames[i], "..") != 0))
         {
             if (check_exist(path, Astage) == 0)
@@ -635,7 +614,7 @@ int modifyfile(char file[], int mode)
         char search[70];
         char loc[80];
         strcpy(loc, neeogit_location);
-        strcat(loc, "/.neeogit/stagedarea");
+        strcat(loc, "/.neeogit/stagearea"); // age khata dad benevisam stagedarea chon yedone d bardashtm
         char COMMAND[180];
         strcpy(COMMAND, "cp ");
         strcat(COMMAND, main_path);
