@@ -10,7 +10,7 @@
 // kardam befahmam chi mige kheyli ghesmatasho  nafahmidam
 // manzoram az bakhsh add tabe add va chizaii k lazem dasht hast
 
-char neeogit_location[85];
+char neeogit_location[185];
 
 // start part of syntax
 int check_dir(char *path);
@@ -19,18 +19,53 @@ int config_local_username(char *username);
 int config_local_email(char *email);
 int config_global_username(char *username);
 int config_global_email(char *email);
-int add(char *name_off_ile);
+int add(char *name_off_ile, int add_mode);
+int modify(int mode);
+int modifyfile(char file[], int mode);
 int check_neeogit_exist();
 int check_root();
 int check_stagehistory();
 int check_nee_root(); // hamitor k az esmesh malome nee va root rock mikone
 int check_exist(char searchfile[], char orgfile[]);
 int check_glob_exist();
-void search_stagedfiles(int depth);
-void search_name(char *path);
+int search_stagedfiles(int depth);
+int search_name(char *path);
 // end part of syntax
 
-void search_name(char *path)
+int config_global_username(char *username)
+{
+    // bayad set konm k harvagh ino  zad  bere  ro hame config proje ha
+    // copy kone
+
+    FILE *file = fopen("/home/config.glob.name", "w");
+    if (file == NULL)
+    {
+        perror("file not found");
+        return 1;
+    }
+    fprintf(file, "username: %s", username);
+    fclose(file);
+
+    return 0;
+}
+int config_global_email(char *email)
+{
+    FILE *file = fopen("/home/config.glob.email", "w");
+    if (file == NULL)
+    {
+        perror("segmen fault14");
+        return 1;
+    }
+    if (file == NULL)
+    {
+        perror("file not found");
+        return 1;
+    }
+    fprintf(file, "email: %s", email);
+    fclose(file);
+    return 0;
+}
+int search_name(char *path)
 {
     char location[80];
     char pathcopy[80];
@@ -39,6 +74,11 @@ void search_name(char *path)
     strcpy(location, neeogit_location);
     strcat(location, "/.neogit/staged_files/Astagedfiles.txt");
     FILE *Astagedfiles = fopen(location, "r");
+    if (Astagedfiles == NULL)
+    {
+        perror("segmen fault13");
+        return 1;
+    }
     char search[80];
     int flag = 0;
     while (fgets(search, 80, Astagedfiles))
@@ -58,12 +98,17 @@ void search_name(char *path)
     }
 }
 
-void search_stagedfiles(int depth)
+int search_stagedfiles(int depth)
 {
     int count = 0;
     system("touch file.txt");
     system("ls -a > file.txt");
     FILE *files = fopen("file.txt", "r");
+    if (files == NULL)
+    {
+        perror("segmen fault12");
+        return 1;
+    }
     char search[50];
     char filenames[50][50];
     while (fgets(search, 50, files))
@@ -84,6 +129,11 @@ void search_stagedfiles(int depth)
         system("touch path.txt");
         system("pwd > path.txt");
         FILE *pathfile = fopen("path.txt", "r");
+        if (pathfile == NULL)
+        {
+            perror("segmen fault11");
+            return 1;
+        }
         fgets(path, 90, pathfile);
         int length = strlen(path);
         path[length - 1] = '/';
@@ -167,15 +217,20 @@ int check_nee_root() // ino check  konm fk konnm eshtebahe
     return flag;
 }
 
-int check_exist(char searchfile[], char orgfile[])
+int check_exist(char path[], char stagehis[])
 {
-    char search[80];
-    strcpy(search, searchfile);
+    char search[1800];
+    strcpy(search, path);
     strcat(search, "\n");
-    FILE *file = fopen(orgfile, "r");
-    char pathes[80];
+    FILE *file = fopen(stagehis, "r");
+    if (file == NULL)
+    {
+        perror("segmen fault10");
+        return 1;
+    }
+    char pathes[1800];
     int flag = 0;
-    while (fgets(pathes, 80, file))
+    while (fgets(pathes, 1800, file))
     {
         if (strcmp(pathes, search) == 0)
         {
@@ -188,16 +243,17 @@ int check_exist(char searchfile[], char orgfile[])
 }
 int check_dir(char *path)
 {
+    chdir("..");
     struct stat filestat;
     if (stat(path, &filestat) == 0)
     {
-        if (S_ISDIR(filestat.st_mode))
+        if (S_ISDIR(filestat.st_mode) == 0)
         {
             return 1;
         }
         return 0;
     }
-    return -1;
+    return 2;
 }
 int check_stagehistory()
 {
@@ -206,6 +262,11 @@ int check_stagehistory()
     system("touch search.txt");
     system("ls > search.txt");
     FILE *file = fopen("search.txt", "r");
+    if (file == NULL)
+    {
+        perror("segmen fault9");
+        return 1;
+    }
     while (fgets(search, sizeof(search), file))
     {
         if (strcmp(search, "stagehistory.txt\n") == 0)
@@ -219,52 +280,27 @@ int check_stagehistory()
     fclose(file);
     return 0;
 }
-
-// int add(char name_off_line[])
-// {
-//     static int first_time = 0;
-//     DIR *nowdir = opendir(".");
-//     // stagearea to init sakhte shode hala mikham y satge history bsazm
-//     if (first_time == 0)
-//     {
-//         first_time++;
-//         chdir(".neeogit/stagearea");
-//         system("touch stagehistory.txt");
-//     }
-//     char path[85];
-//     char hisstage[85];
-//     // mikhaim adress hal  hazero beggirim
-//     system("touch pathfile.txt");
-//     system("pwd > pathfile.txt");
-//     FILE *pathfile = fopen("pathfile.txt", "r");
-//     fgets(path, sizeof(path), pathfile);
-//     fclose(pathfile);
-//     system("rm pathfile.txt");
-//     // ta inja
-//     int lenth = strlen(path);
-//     path[lenth - 1] = '\0';
-//     strcat(path, "/");
-//     strcat(path, name_off_line);
-//     strcpy(hisstage, neeogit_location);
-//     strcat(hisstage, "/.neeogit/stagearea/stagehistory.txt");
-//     // check direcctory
-// }
 int check_root()
 {
-    system("touch alaki.txt");
-    system("pwd > alaki.txt");
-    FILE *file = fopen("alaki.txt", "r");
-    char search[85];
+    system("touch khastam.txt");
+    system("pwd > khastam.txt");
+    FILE *file = fopen("khastam.txt", "r");
+    if (file == NULL)
+    {
+        perror("segmen fault8");
+        return 1;
+    }
+    char search[185];
     fgets(search, sizeof(search), file);
     if (strcmp(search, "/\n") == 0)
     {
-        system("rm alaki.txt");
+        system("rm khastam.txt");
         fclose(file);
         return 1;
     }
     else
     {
-        system("rm alaki.txt");
+        system("rm khastam.txt");
         fclose(file);
         return 0;
     }
@@ -276,7 +312,12 @@ int check_neeogit_exist()
     system("touch folder.txt");
     system("ls -a > folder.txt");
     FILE *file = fopen("folder.txt", "r");
-    char check[85];
+    if (file == NULL)
+    {
+        perror("segmen fault7");
+        return 1;
+    }
+    char check[185];
     int flag;
     while (fgets(check, sizeof(check), file))
     {
@@ -287,6 +328,11 @@ int check_neeogit_exist()
             system("touch location.txt");
             system("pwd > location.txt");
             FILE *location = fopen("location.txt", "r");
+            if (location == NULL)
+            {
+                perror("segmen fault6");
+                return 1;
+            }
             fgets(neeogit_location, sizeof(neeogit_location), location);
             // injasho nafahmidam chera
             int lenth = strlen(neeogit_location);
@@ -321,7 +367,7 @@ int init(int argc, char *const argv[])
         DIR *dir = opendir(".");
         if (dir == NULL)
         {
-            perror("Error opening current directory");
+            perror("Error opening current directory\n");
             return 1;
         }
 
@@ -356,16 +402,37 @@ int init(int argc, char *const argv[])
             return 1;
         }
         // creat stagearae for the add part
-        FILE *poin1 = fopen(".neeogit/stagearea", "w");
         FILE *poin2 = fopen(".neeogit/config.email", "w");
         FILE *poin3 = fopen(".neeogit/config.name", "w");
+        FILE *poin1 = fopen(".neeogit/stagehistory.txt", "w");
         fclose(poin1);
         fclose(poin2);
         fclose(poin3);
+        // baraye sakht glob to home
+
+        system("touch khastam.txt");
+        system("pwd > khastam.txt");
+        system("mkdir .neeogit/stagearea");
+        FILE *nowdir = fopen("khastam.txt", "r");
+        if (nowdir == NULL)
+        {
+            perror("khastam erorr");
+            return 1;
+        }
+        char alaki[180];
+        fgets(alaki, sizeof(alaki), nowdir);
+        fclose(nowdir);
+        system("rm khastam.txt");
+        chdir("/home");
+        FILE *poin4 = fopen("config.glob.name.txt", "w");
+        FILE *poin5 = fopen("config.glob.email.txt", "w");
+        fclose(poin4);
+        fclose(poin5);
+        chdir(alaki);
     }
     else
     {
-        perror("neeogit repository has already initialized");
+        perror("neeogit repository has already initialized\n");
     }
     return 0;
 }
@@ -375,6 +442,7 @@ int config_local_username(char *username)
     FILE *file = fopen(".neeogit/config.name", "w");
     if (file == NULL)
     {
+        perror("khata5");
         return 1;
     }
     fprintf(file, "username: %s\n", username);
@@ -386,19 +454,83 @@ int config_local_email(char *email)
     FILE *file = fopen(".neeogit/config.email", "w");
     if (file == NULL)
     {
+        perror("khata4");
         return 1;
     }
     fprintf(file, "email: %s\n", email);
     fclose(file);
     return 0;
 }
-
-int add(char *name_of_file)
+int modify(int mode)
 {
-    char path[90];
-    char stagehis[80];
+    int count = 0;
+    system("touch file.txt");
+    system("ls -a > file.txt");
+    FILE *files = fopen("file.txt", "r");
+    char search[50];
+    char filenames[50][50];
+    while (fgets(search, 50, files))
+    {
+        if (strcmp(search, "file.txt\n") != 0)
+        {
+            strcpy(filenames[count], search);
+            count++;
+        }
+    }
+    fclose(files);
+    system("rm file.txt");
+    for (int i = 0; i < count; i++)
+    {
+        int len = strlen(filenames[i]);
+        filenames[i][len - 1] = '\0';
+        char path[90];
+        system("touch path.txt");
+        system("pwd > path.txt");
+        FILE *pathfile = fopen("path.txt", "r");
+        fgets(path, 90, pathfile);
+        int length = strlen(path);
+        path[length - 1] = '/';
+        strcat(path, filenames[i]);
+        fclose(pathfile);
+        system("rm path.txt");
+        // path is compoletely true;
+        int type = check_dir(path);
+        char Astage[80];
+        strcpy(Astage, neeogit_location);
+        strcat(Astage, "/.neogit/stagearea/stagehistory.txt");
+        if ((((type == 1) && (strcmp(filenames[i], ".neeogit") != 0)) && (strcmp(filenames[i], ".") != 0)) && (strcmp(filenames[i], "..") != 0))
+        {
+            if (check_exist(path, Astage) == 0)
+            {
+                FILE *add = fopen(Astage, "a");
+                fprintf(add, "%s", path);
+                fprintf(add, "\n");
+                fclose(add);
+            }
+            chdir(path);
+            modify(mode);
+            chdir("..");
+        }
+        else if (((strcmp(filenames[i], ".neeogit") != 0)) && (type == 0))
+        {
+            if (check_exist(path, Astage) == 0)
+            {
+                FILE *add = fopen(Astage, "a");
+                fprintf(add, "%s", path);
+                fprintf(add, "\n");
+                fclose(add);
+                modifyfile(filenames[i], mode);
+            }
+        }
+    }
+}
+int add(char *name_of_file, int add_mode)
+{
+    char path[1900];
+    char stagehis[1800];
     system("touch path.txt");
     system("pwd > path.txt");
+    // if zir azafeh
     if (check_stagehistory() == 0)
     {
         DIR *dir = opendir(".neeogit/stagearea");
@@ -408,7 +540,12 @@ int add(char *name_of_file)
     system("touch path.txt");
     system("pwd > path.txt");
     FILE *pathfile = fopen("path.txt", "r");
-    fgets(path, 90, pathfile);
+    if (pathfile == NULL)
+    {
+        perror("segmen fault3");
+        return 1;
+    }
+    fgets(path, sizeof(path), pathfile);
     fclose(pathfile);
     system("rm path.txt");
     int len = strlen(path);
@@ -416,17 +553,23 @@ int add(char *name_of_file)
     strcat(path, "/");
     strcat(path, name_of_file);
     strcpy(stagehis, neeogit_location);
-    strcat(stagehis, "/.neeogit/stagearea/stagehistory");
+    strcat(stagehis, "/.neeogit/stagearea/stagehistory.txt");
     if (check_dir(path) == 1)
     {
         if (check_exist(path, stagehis) == 0)
         {
             FILE *add = fopen(stagehis, "a");
+            if (add == NULL)
+            {
+                perror("segmen fault2");
+                return 1;
+            }
             fprintf(add, "%s", path);
             fprintf(add, "\n");
             fclose(add);
         }
         chdir(path);
+        modify(add_mode);
         chdir("..");
     }
     else if (check_dir(path) == 0)
@@ -434,24 +577,119 @@ int add(char *name_of_file)
         if (check_exist(path, stagehis) == 0)
         {
             FILE *add = fopen(stagehis, "a");
+            if (add == NULL)
+            {
+                perror("segmen fault1");
+                return 1;
+            }
             fprintf(add, "%s", path);
             fprintf(add, "\n");
             fclose(add);
         }
     }
-    else
+    else if (check_dir(path) == 2)
     {
-        printf("there isn't any file or directory with this name");
+        printf("there isn't any file or directory with this name\n");
         return 0;
     }
     return 1;
+}
+int modifyfile(char file[], int mode)
+{
+    // file is path of our file;
+    char path[80];
+    char location[80];
+    system("touch path.txt");
+    system("pwd > path.txt");
+    FILE *pathfile = fopen("path.txt", "r");
+    fgets(path, 80, pathfile);
+    fclose(pathfile);
+    system("rm path.txt");
+    int len = strlen(path);
+    path[len - 1] = '/';
+    strcpy(location, path);
+    strcat(path, file);
+    char main_path[80];
+    strcpy(main_path, path);
+    struct stat filestat;
+    if (stat(path, &filestat) == 0)
+    {
+        strcat(path, "\n");
+        time_t present = filestat.st_mtime;
+        char timelineloc[80];
+        char temp[80];
+        strcpy(timelineloc, neeogit_location);
+        strcat(timelineloc, "/.neeogit/commits/timeline.txt");
+        strcpy(temp, neeogit_location);
+        strcat(temp, "/.neeogit/commits/temp.txt");
+        FILE *timeline = fopen(timelineloc, "r");
+        FILE *tempfile = fopen(temp, "w");
+        char search[70];
+        int flag = 0;
+        while (fgets(search, 70, timeline))
+        {
+            fprintf(tempfile, "%s", search);
+            if (strcmp(search, path) == 0)
+            {
+                fgets(search, 70, timeline);
+                char modifiedTime[80];
+                // strcpy(modifiedTime, ctime(&present));
+                modifiedTime[strlen(modifiedTime) - 1] = '\0'; // Remove the newline character
+                // if (strcmp(search, ctime(&modifiedTime)) != 0)
+                //{
+                //     flag++;
+                // }
+                fprintf(tempfile, "%s", search);
+                flag++;
+            }
+        }
+        if (flag == 0)
+        {
+            fprintf(tempfile, "%s", path);
+            // fprintf(tempfile, "%s", ctime(&present));
+        }
+        if (((flag == 0 || flag == 2) || (checktracked_files(path) == 0)) || (mode == 1))
+        {
+            if (checktracked_files(path) == 0)
+            {
+                writetrcktedfiles(path);
+            }
+            char loc[80];
+            strcpy(loc, neeogit_location);
+            strcat(loc, "/.neeogit/stagedarea");
+            char COMMAND[180];
+            strcpy(COMMAND, "cp ");
+            strcat(COMMAND, main_path);
+            strcat(COMMAND, " ");
+            strcat(COMMAND, loc);
+            system(COMMAND);
+            strcat(loc, "/staged_files.txt"); // ino beporsam chera txt gozshteh
+            FILE *staged_files = fopen(loc, "a");
+            fprintf(staged_files, "%s", path);
+            // fprintf(staged_files, "%s", ctime(&present));
+            fclose(staged_files);
+        }
+        fclose(timeline);
+        fclose(tempfile);
+        chdir(neeogit_location);
+        chdir(".neeogit/commits");
+        system("rm timeline.txt");
+        system("mv temp.txt timeline.txt");
+        chdir(location);
+        return 1;
+    }
+    else
+    {
+        perror("Error");
+        return -1;
+    }
 }
 
 int main(int argc, char *argv[])
 {
     if (argc < 2)
     {
-        fprintf(stdout, "please enter a valid command");
+        fprintf(stdout, "please enter a valid command\n");
         return 1;
     }
     else if (strcmp(argv[1], "init") == 0)
@@ -464,6 +702,21 @@ int main(int argc, char *argv[])
         // for global
         if (strcmp(argv[2], "-global") == 0)
         {
+            if (strcmp(argv[3], "user.name") == 0)
+            {
+                config_global_username(argv[4]);
+                return 0;
+            }
+            else if (strcmp(argv[3], "user.email") == 0)
+            {
+                config_global_email(argv[4]);
+                return 0;
+            }
+            else
+            {
+                perror("hala k eshteba neveshti nomreh bede :)\n");
+                return 1;
+            }
         }
         // for local
         // i  think this part is correct
@@ -472,11 +725,18 @@ int main(int argc, char *argv[])
             if (strcmp(argv[2], "user.name") == 0)
             {
                 config_local_username(argv[3]);
+                return 0;
             }
             // for email
-            else
+            else if (strcmp(argv[2], "email") == 0)
             {
                 config_local_email(argv[3]);
+                return 0;
+            }
+            else
+            {
+                perror("hala k eshtebah type kardi  nomreh bede :)\n");
+                return 1;
             }
         }
     }
@@ -492,7 +752,7 @@ int main(int argc, char *argv[])
         {
             for (int i = 3; i < argc; i++)
             {
-                add(argv[i]);
+                add(argv[i], 0);
             }
         }
         else if (strcmp(argv[2], "-n") == 0)
@@ -511,7 +771,7 @@ int main(int argc, char *argv[])
         }
         else
         {
-            add(argv[2]);
+            add(argv[2], 0);
         }
     }
     else if (strcmp(argv[1], "reset") == 0)
@@ -520,7 +780,7 @@ int main(int argc, char *argv[])
 
     else
     {
-        perror("mage ahmaghi dorost type kon");
+        perror("chon eshteba nveshti nomreh bede\n");
     }
 
     return 0;
