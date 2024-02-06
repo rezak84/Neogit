@@ -40,6 +40,11 @@ int check_glob_name_exist()
     system("touch search.txt");
     system("ls > search.txt");
     FILE *file = fopen("search.txt", "r");
+    if (file == NULL)
+    {
+        perror("segmen check glob");
+        return 1;
+    }
     char search[185];
     while (fgets(search, sizeof(search), file) != NULL)
     {
@@ -54,6 +59,32 @@ int check_glob_name_exist()
     system("rm search.txt");
     return 1;
 }
+int check_glob_email_exist()
+{
+    DIR *dir = opendir("/home");
+    system("touch search.txt");
+    system("ls > search.txt");
+    FILE *file = fopen("search.txt", "r");
+    if (file == NULL)
+    {
+        perror("segmen check glob");
+        return 1;
+    }
+    char search[185];
+    while (fgets(search, sizeof(search), file) != NULL)
+    {
+        if (strcmp(search, "config.glob.email.txt") == 0)
+        {
+            fclose(file);
+            system("rm search.txt");
+            return 0;
+        }
+    }
+    fclose(file);
+    system("rm search.txt");
+    return 1;
+}
+
 int config_global_username(char *username)
 {
     // bayad set konm k harvagh ino  zad  bere  ro hame config proje ha
@@ -62,7 +93,7 @@ int config_global_username(char *username)
     FILE *file = fopen("/home/config.glob.name.txt", "w");
     if (file == NULL)
     {
-        perror("file not found");
+        perror("file not found1");
         return 1;
     }
     fprintf(file, "username: %s", username);
@@ -75,13 +106,14 @@ int config_global_email(char *email)
     FILE *file = fopen("/home/config.glob.email.txt", "w");
     if (file == NULL)
     {
-        perror("file not found");
+        perror("file not found2");
         return 1;
     }
     fprintf(file, "email: %s", email);
     fclose(file);
     return 0;
 }
+
 int search_name(char *path)
 {
     char location[80];
@@ -228,6 +260,10 @@ int check_exist(char path[], char stagehis[])
 }
 int check_dir(char *path)
 {
+    if (strstr(path, ".txt") != NULL)
+        return 0;
+    else
+        return 1;
     chdir("..");
     struct stat filestat;
     if (stat(path, &filestat) == 0)
@@ -412,18 +448,79 @@ int init(int argc, char *const argv[])
         char alaki[180];
         fgets(alaki, sizeof(alaki), nowdir);
         fclose(nowdir);
-        system("rm khastam.txt");
-        chdir("/home");
-        FILE *poin4 = fopen("config.glob.name.txt", "w");
-        FILE *poin5 = fopen("config.glob.email.txt", "w");
-        fclose(poin4);
-        fclose(poin5);
-        if (poin4 == NULL && poin5 == NULL)
+        if (check_glob_name_exist() == 1)
         {
-            perror("segmen fault..");
-            return 1;
+            system("rm khastam.txt");
+            chdir("/home");
+            FILE *poin4 = fopen("config.glob.name.txt", "w");
+            fclose(poin4);
+            if (poin4 == NULL)
+            {
+                perror("segmen fault..");
+                return 1;
+            }
+            chdir(alaki);
         }
-        chdir(alaki);
+        // name
+        else
+        {
+            FILE *file1 = fopen("/home/config.glob.name.txt", "r");
+            if (file1 == NULL)
+            {
+                perror("segmen4");
+                return 1;
+            }
+            char transfer[185];
+            char adress[185];
+            fgets(transfer, 185, file1);
+            fclose(file1);
+            strcpy(adress, neeogit_location);
+            strcat(adress, "/config.name.txt");
+            FILE *file2 = fopen(adress, "w");
+            if (file2 == NULL)
+            {
+                perror("segme3");
+                return 1;
+            }
+            fprintf(file2, "%s", transfer);
+            fclose(file2);
+        }
+        if (check_glob_email_exist() == 1)
+        {
+            system("rm khastam1.txt");
+            chdir("/home");
+            FILE *poin5 = fopen("config.glob.email.txt", "w");
+            fclose(poin5);
+            if (poin5 == NULL)
+            {
+                perror("segmen fault..");
+                return 1;
+            }
+            chdir(alaki);
+        }
+        else
+        {
+            FILE *file1 = fopen("/home/config.glob.email.txt", "r");
+            if (file1 == NULL)
+            {
+                perror("segmen2");
+                return 1;
+            }
+            char transfer[185];
+            char adress[185];
+            fgets(transfer, 185, file1);
+            fclose(file1);
+            strcpy(adress, neeogit_location);
+            strcat(adress, "/config.email.txt");
+            FILE *file2 = fopen(adress, "w");
+            if (file2 == NULL)
+            {
+                perror("segme1");
+                return 1;
+            }
+            fprintf(file2, "%s", transfer);
+            fclose(file2);
+        }
     }
     else
     {
@@ -549,6 +646,7 @@ int add(char *name_of_file, int add_mode)
     strcat(path, name_of_file);
     strcpy(stagehis, neeogit_location);
     strcat(stagehis, "/.neeogit/stagearea/stagehistory.txt");
+    // printf("%s\n", path);
     if (check_dir(path) == 1)
     {
         if (check_exist(path, stagehis) == 0)
@@ -569,19 +667,21 @@ int add(char *name_of_file, int add_mode)
     }
     else if (check_dir(path) == 0)
     {
-        if (check_exist(path, stagehis) == 0)
+        // printf("path : %s", path);
+        // printf("stagehis :%s", stagehis);
+        // if (check_exist(path, stagehis) == 0)
+        // {
+        FILE *add = fopen(stagehis, "a");
+        if (add == NULL)
         {
-            FILE *add = fopen(stagehis, "a");
-            if (add == NULL)
-            {
-                perror("segmen fault1");
-                return 1;
-            }
-            fprintf(add, "%s", path);
-            fprintf(add, "\n");
-            fclose(add);
-            modifyfile(name_of_file, add_mode);
+            perror("segmen fault1");
+            return 1;
         }
+        fprintf(add, "%s", path);
+        fprintf(add, "\n");
+        fclose(add);
+        modifyfile(name_of_file, add_mode);
+        // }
     }
     else if (check_dir(path) == 2)
     {
@@ -608,6 +708,7 @@ int modifyfile(char file[], int mode)
     char main_path[80];
     strcpy(main_path, path);
     struct stat filestat;
+    // printf("file path :%s", path);
     if (stat(path, &filestat) == 0)
     {
         strcat(path, "\n");
