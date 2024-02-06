@@ -46,7 +46,7 @@ int check_glob_name_exist()
         return 1;
     }
     char search[185];
-    while (fgets(search, sizeof(search), file) != NULL)
+    while (fgets(search, sizeof(search), file))
     {
         if (strcmp(search, "config.glob.name.txt") == 0)
         {
@@ -98,6 +98,23 @@ int config_global_username(char *username)
     }
     fprintf(file, "username: %s", username);
     fclose(file);
+    FILE *file1 = fopen("/home/config.glob.name.txt", "r");
+    if (file1 == NULL)
+    {
+        perror("segment glob name1");
+        return 1;
+    }
+    char keyk[185];
+    fgets(keyk, 185, file1);
+    fclose(file1);
+    FILE *file2 = fopen("neeogit/.neeogit/config.name.txt", "W");
+    if (file2 == NULL)
+    {
+        perror("segment glob name2");
+        return 1;
+    }
+    fprintf(file2, "%s", keyk);
+    fclose(file2);
 
     return 0;
 }
@@ -111,6 +128,25 @@ int config_global_email(char *email)
     }
     fprintf(file, "email: %s", email);
     fclose(file);
+    config_local_email(email);
+    FILE *file1 = fopen("/home/config.glob.email.txt", "r");
+    if (file1 == NULL)
+    {
+        perror("segment glob email1");
+        return 1;
+    }
+    char keyk[185];
+    fgets(keyk, 185, file1);
+    fclose(file1);
+    FILE *file2 = fopen("neeogit/.neeogit/config.email.txt", "W");
+    if (file2 == NULL)
+    {
+        perror("segment glob email2");
+        return 1;
+    }
+    fprintf(file2, "%s", keyk);
+    fclose(file2);
+
     return 0;
 }
 
@@ -450,76 +486,54 @@ int init(int argc, char *const argv[])
         fclose(nowdir);
         if (check_glob_name_exist() == 1)
         {
-            system("rm khastam.txt");
-            chdir("/home");
-            FILE *poin4 = fopen("config.glob.name.txt", "w");
-            fclose(poin4);
-            if (poin4 == NULL)
-            {
-                perror("segmen fault..");
-                return 1;
-            }
-            chdir(alaki);
+            FILE *file = fopen("/home/config.glob.name.txt", "w");
+            fclose(file);
         }
         // name
-        else
+        else if (check_glob_name_exist() == 0)
         {
-            FILE *file1 = fopen("/home/config.glob.name.txt", "r");
+            FILE *file = fopen("/home/config.glob.name.txt", "r");
+            if (file == NULL)
+            {
+                perror("segment check glob name");
+                return 1;
+            }
+            char transfer_name[185];
+            fgets(transfer_name, sizeof(transfer_name), file);
+            fclose(file);
+            FILE *file1 = fopen("/.neeogit/config.name.txt", "w");
             if (file1 == NULL)
             {
-                perror("segmen4");
+                perror("segment check glob name");
                 return 1;
             }
-            char transfer[185];
-            char adress[185];
-            fgets(transfer, 185, file1);
+            fprintf(file1, "%s", transfer_name);
             fclose(file1);
-            strcpy(adress, neeogit_location);
-            strcat(adress, "/config.name.txt");
-            FILE *file2 = fopen(adress, "w");
-            if (file2 == NULL)
-            {
-                perror("segme3");
-                return 1;
-            }
-            fprintf(file2, "%s", transfer);
-            fclose(file2);
         }
         if (check_glob_email_exist() == 1)
         {
-            system("rm khastam1.txt");
-            chdir("/home");
-            FILE *poin5 = fopen("config.glob.email.txt", "w");
-            fclose(poin5);
-            if (poin5 == NULL)
+            FILE *file = fopen("/home/config.glob.email.txt", "w");
+            fclose(file);
+        }
+        else if (check_glob_email_exist() == 0)
+        {
+            FILE *file = fopen("/home/config.glob.email.txt", "r");
+            if (file == NULL)
             {
-                perror("segmen fault..");
+                perror("segment check glob email");
                 return 1;
             }
-            chdir(alaki);
-        }
-        else
-        {
-            FILE *file1 = fopen("/home/config.glob.email.txt", "r");
+            char transfer_name[185];
+            fgets(transfer_name, sizeof(transfer_name), file);
+            fclose(file);
+            FILE *file1 = fopen("/.neeogit/config.email.txt", "w");
             if (file1 == NULL)
             {
-                perror("segmen2");
+                perror("segment check glob email");
                 return 1;
             }
-            char transfer[185];
-            char adress[185];
-            fgets(transfer, 185, file1);
+            fprintf(file1, "%s", transfer_name);
             fclose(file1);
-            strcpy(adress, neeogit_location);
-            strcat(adress, "/config.email.txt");
-            FILE *file2 = fopen(adress, "w");
-            if (file2 == NULL)
-            {
-                perror("segme1");
-                return 1;
-            }
-            fprintf(file2, "%s", transfer);
-            fclose(file2);
         }
     }
     else
